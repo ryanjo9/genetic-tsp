@@ -6,15 +6,14 @@ from which_pyqt import PYQT_VER
 if PYQT_VER == 'PYQT5':
 	from PyQt5.QtCore import QLineF, QPointF
 elif PYQT_VER == 'PYQT4':
-	from PyQt4.QtCore import QLineF, QPointF
+	pass
 else:
 	raise Exception('Unsupported Version of PyQt: {}'.format(PYQT_VER))
 
-import time
 import numpy as np
-from src.TSPClasses import *
+from TSPClasses import *
 import heapq
-import itertools
+import random
 
 
 class TSPSolver:
@@ -280,3 +279,18 @@ class State:
 	# O(1)
 	def __lt__(self, other):
 		return self.path[-1] < other.path[-1]
+
+
+class Genome:
+	def __init__(self, genome_list):
+		self.cost = None
+		self.genome_list = []
+		self.genome_list = genome_list
+
+	def get_list(self):
+		return self.genome_list
+
+	def get_cost(self):
+		if self.cost is None:
+			self.cost = TSPSolution(self.genome_list).cost
+		return self.cost
