@@ -280,6 +280,17 @@ class State:
 	def __lt__(self, other):
 		return self.path[-1] < other.path[-1]
 
+	def mutate(self, genome):
+		mutation_rate = 0.1
+		mutate_chance = random.uniform(0.0, 1.0)
+
+		genome_list = genome.getList()
+		if mutate_chance < mutation_rate:
+			val1, val2 = random.randrange(0, len(genome_list)), random.randrange(0, len(genome_list))
+			genome_list[val1], genome_list[val2] = genome_list[val2], genome_list[val1]
+
+		return Genome(genome_list)
+
 
 class Genome:
 	def __init__(self, genome_list):
