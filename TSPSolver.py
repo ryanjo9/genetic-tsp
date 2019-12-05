@@ -280,6 +280,9 @@ class State:
 	def __lt__(self, other):
 		return self.path[-1] < other.path[-1]
 
+	def fitness(self, genome):
+		return genome.get_cost()
+
 
 class Genome:
 	def __init__(self, genome_list):
