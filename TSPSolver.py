@@ -20,6 +20,7 @@ class TSPSolver:
 	def __init__(self, gui_view):
 		self._scenario = None
 		self.populationSize = 100
+		self.population = []
 
 	def setupWithScenario(self, scenario):
 		self._scenario = scenario
@@ -205,15 +206,14 @@ class TSPSolver:
 	'''
 
 	def fancy(self, time_allowance=60.0):
-		population = self.fillPopulationWithRandom()
+		self.fillPopulationWithRandom()
 
 	def fillPopulationWithRandom(self):
-		population = []
 		cities = self._scenario.getCities()
 		ncities = len(cities)
 		foundTour = False
 		count = 0
-		while len(population) < self.populationSize:
+		while len(self.population) < self.populationSize:
 			# create a random permutation
 			perm = np.random.permutation(ncities)
 			route = []
@@ -226,8 +226,7 @@ class TSPSolver:
 			count += 1
 			if bssf.cost < np.inf:
 				# Found a valid route
-				population.append(genome)  # or push bssf if we want population to be TSPSolution objects
-		return population
+				self.population.append(genome)  # or push bssf if we want population to be TSPSolution objects
 
 
 """
