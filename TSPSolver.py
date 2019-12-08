@@ -290,7 +290,10 @@ class State:
 			genome_list[val1], genome_list[val2] = genome_list[val2], genome_list[val1]
 
 		return Genome(genome_list)
-
+  
+	def fitness(self, genome):
+		return genome.get_cost()
+  
 
 class Genome:
 	def __init__(self, genome_list):
