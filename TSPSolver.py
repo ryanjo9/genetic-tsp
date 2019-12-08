@@ -19,6 +19,7 @@ import random
 class TSPSolver:
 	def __init__(self, gui_view):
 		self._scenario = None
+		self.populationSize = 100
 
 	def setupWithScenario(self, scenario):
 		self._scenario = scenario
@@ -204,7 +205,29 @@ class TSPSolver:
 	'''
 
 	def fancy(self, time_allowance=60.0):
-		pass
+		population = self.fillPopulationWithRandom()
+
+	def fillPopulationWithRandom(self):
+		population = []
+		cities = self._scenario.getCities()
+		ncities = len(cities)
+		foundTour = False
+		count = 0
+		while len(population) < self.populationSize:
+			# create a random permutation
+			perm = np.random.permutation(ncities)
+			route = []
+			# Now build the route using the random permutation
+			for i in range(ncities):
+				route.append(cities[perm[i]])
+			bssf = TSPSolution(route)
+			genome = Genome(route)
+			genome.get_cost()
+			count += 1
+			if bssf.cost < np.inf:
+				# Found a valid route
+				population.append(genome)  # or push bssf if we want population to be TSPSolution objects
+		return population
 
 
 """
