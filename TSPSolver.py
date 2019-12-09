@@ -206,6 +206,29 @@ class TSPSolver:
 	def fancy(self, time_allowance=60.0):
 		pass
 
+	"""<summary>
+		This takes in a population of genomes
+	"""
+	def prune(self, genomes, bssf):
+		percent_to_keep = 0.7
+		keep_size = percent_to_keep * len(genomes)
+
+		# Check if there is a new bssf
+		min = min(genomes, key=lambda g: g.get_cost())
+
+		if min.get_cost() < bssf.get_cost():
+			bssf = min
+
+		# Prune the genomes
+		total_cost = sum(g.get_cost() for g in genomes)
+
+		# each items probability of survival is its cost / sum of all costs
+		# subtracted from 1 so the lower costs have higher probabilities of being kepts
+		pdf = [1-(g.get_cost() / total_cost) for g in genomes]
+		subset = np.random.choice(genomes, keep_size, replace=False, p=pdf)
+
+		return subset, bssf
+
 
 """
 This class is the object that represents a node in the tree. It has a matrix that holds values of cost, and it
