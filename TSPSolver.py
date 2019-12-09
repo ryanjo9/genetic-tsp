@@ -207,7 +207,9 @@ class TSPSolver:
 		pass
 
 	"""<summary>
-		This takes in a population of genomes
+		Takes in a population of genomes and uses weighted probabilities to determine a subset.
+		Returns a list of genomes and bssf
+	   </summary>
 	"""
 	def prune(self, genomes, bssf):
 		percent_to_keep = 0.7
