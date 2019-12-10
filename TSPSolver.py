@@ -19,6 +19,8 @@ import random
 class TSPSolver:
 	def __init__(self, gui_view):
 		self._scenario = None
+		self.populationSize = 100
+		self.population = []
 
 	def setupWithScenario(self, scenario):
 		self._scenario = scenario
@@ -204,7 +206,27 @@ class TSPSolver:
 	'''
 
 	def fancy(self, time_allowance=60.0):
-		pass
+		self.fillPopulationWithRandom()
+
+	def fillPopulationWithRandom(self):
+		cities = self._scenario.getCities()
+		ncities = len(cities)
+		foundTour = False
+		count = 0
+		while len(self.population) < self.populationSize:
+			# create a random permutation
+			perm = np.random.permutation(ncities)
+			route = []
+			# Now build the route using the random permutation
+			for i in range(ncities):
+				route.append(cities[perm[i]])
+			bssf = TSPSolution(route)
+			genome = Genome(route)
+			genome.get_cost()
+			count += 1
+			if bssf.cost < np.inf:
+				# Found a valid route
+				self.population.append(genome)  # or push bssf if we want population to be TSPSolution objects
 
 	"""<summary>
 		Takes in a population of genomes and uses weighted probabilities to determine a subset.
