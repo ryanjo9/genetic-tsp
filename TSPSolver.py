@@ -19,6 +19,8 @@ import random
 class TSPSolver:
 	def __init__(self, gui_view):
 		self._scenario = None
+		self.populationSize = 100
+		self.population = []
 
 	def setupWithScenario(self, scenario):
 		self._scenario = scenario
@@ -204,7 +206,7 @@ class TSPSolver:
 	'''
 
 	def fancy(self, time_allowance=60.0):
-		start_time = time.time()
+    start_time = time.time()
 		no_improv_count = 0
 		TERMINATION_LIMIT
 		while time.time() - start_time < time_allowance and no_improv_count < TERMINATION_LIMIT:
@@ -245,6 +247,51 @@ class TSPSolver:
 				hold_val = genome1[i]
 				genome1[i] = genome1[swap_idx]
 				genome1[swap_idx] = hold_val
+
+	def fillPopulationWithRandom(self):
+		cities = self._scenario.getCities()
+		ncities = len(cities)
+		foundTour = False
+		count = 0
+		while len(self.population) < self.populationSize:
+			# create a random permutation
+			perm = np.random.permutation(ncities)
+			route = []
+			# Now build the route using the random permutation
+			for i in range(ncities):
+				route.append(cities[perm[i]])
+			bssf = TSPSolution(route)
+			genome = Genome(route)
+			genome.get_cost()
+			count += 1
+			if bssf.cost < np.inf:
+				# Found a valid route
+				self.population.append(genome)  # or push bssf if we want population to be TSPSolution objects
+
+	"""<summary>
+		Takes in a population of genomes and uses weighted probabilities to determine a subset.
+		Returns a list of genomes and bssf
+	   </summary>
+	"""
+	def prune(self, genomes, bssf):
+		percent_to_keep = 0.7
+		keep_size = percent_to_keep * len(genomes)
+
+		# Check if there is a new bssf
+		min = min(genomes, key=lambda g: g.get_cost())
+
+		if min.get_cost() < bssf.get_cost():
+			bssf = min
+
+		# Prune the genomes
+		total_cost = sum(g.get_cost() for g in genomes)
+
+		# each items probability of survival is its cost / sum of all costs
+		# subtracted from 1 so the lower costs have higher probabilities of being kepts
+		pdf = [1-(g.get_cost() / total_cost) for g in genomes]
+		subset = np.random.choice(genomes, keep_size, replace=False, p=pdf)
+
+		return subset, bssf
 
 			children_genomes.append(genome1)
 		return children_genomes
@@ -322,9 +369,20 @@ class State:
 	def __lt__(self, other):
 		return self.path[-1] < other.path[-1]
 
+	def mutate(self, genome):
+		mutation_rate = 0.1
+		mutate_chance = random.uniform(0.0, 1.0)
+
+		genome_list = genome.getList()
+		if mutate_chance < mutation_rate:
+			val1, val2 = random.randrange(0, len(genome_list)), random.randrange(0, len(genome_list))
+			genome_list[val1], genome_list[val2] = genome_list[val2], genome_list[val1]
+
+		return Genome(genome_list)
+  
 	def fitness(self, genome):
 		return genome.get_cost()
-
+  
 
 class Genome:
 	def __init__(self, genome_list):
