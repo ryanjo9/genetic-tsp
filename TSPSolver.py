@@ -206,7 +206,47 @@ class TSPSolver:
 	'''
 
 	def fancy(self, time_allowance=60.0):
-		self.fillPopulationWithRandom()
+    start_time = time.time()
+		no_improv_count = 0
+		TERMINATION_LIMIT
+		while time.time() - start_time < time_allowance and no_improv_count < TERMINATION_LIMIT:
+			# do something
+			
+			# ...
+			self.crossOver()
+			# ...
+
+			# increment no_improv_count if current generation did not improve
+			# reset no_improv_count if current generation did improve
+
+
+	# Function to cross over a list of genomes
+	# Time O(n^3)
+	def crossOver(self, genomes):
+		genome_list = genomes.copy()
+		children_genomes = []
+
+		# shuffle the list to randomize the cross over
+		random.shuffle(genome_list)
+		genome_it = iter(genome_list)
+
+		# loop through grabbing two genomes at a time
+		for genome1 in genome_it:
+			genome2 = next(genome_it)
+			if genome2 is None:
+				break
+
+			genome1 = genome1.genome_list
+			genome2 = genome2.genome_list
+
+			# grab a random index to be the cross over line
+			idx = random.randrange(0, len(genome1))
+			# for each element to the left cross over
+			for i in range(idx):
+				swap_idx = genome1.index(genome2[i])
+				hold_val = genome1[i]
+				genome1[i] = genome1[swap_idx]
+				genome1[swap_idx] = hold_val
 
 	def fillPopulationWithRandom(self):
 		cities = self._scenario.getCities()
@@ -253,6 +293,8 @@ class TSPSolver:
 
 		return subset, bssf
 
+			children_genomes.append(genome1)
+		return children_genomes
 
 """
 This class is the object that represents a node in the tree. It has a matrix that holds values of cost, and it
