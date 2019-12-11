@@ -19,7 +19,7 @@ import random
 class TSPSolver:
     def __init__(self, gui_view):
         self._scenario = None
-        self.populationSize = 4
+        self.populationSize = 100
         self.population = []
 
     def setupWithScenario(self, scenario):
