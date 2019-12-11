@@ -282,7 +282,7 @@ class TSPSolver:
 			# Now build the route using the random permutation
 			for i in range(ncities):
 				route.append(cities[perm[i]])
-			# bssf = TSPSolution(route) # uncomment if line 289 is commented. Saving constructing new objects
+			# bssf = TSPSolution(route) # uncomment if line 289 is uncommented. Saving constructing new objects
 			genome = Genome(route)
 			genome.get_cost()
 			count += 1
