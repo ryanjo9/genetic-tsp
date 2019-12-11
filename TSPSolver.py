@@ -313,7 +313,7 @@ class TSPSolver:
 		pdf = [(g.get_cost() / total_cost) for g in genomes]
 		subset = np.random.choice(genomes, keep_size, replace=False, p=pdf)
 
-		return subset, bssf
+		return subset.tolist(), bssf
 
 	def mutate(self, genome):
 		mutation_rate = 0.1
