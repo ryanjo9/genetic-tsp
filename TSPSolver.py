@@ -218,24 +218,25 @@ class TSPSolver:
             # fill population
             self.fillPopulationWithRandom()
             # prune population
-            self.population, bssf = self.prune(self.population, currentBssf)
+            new_pop, bssf = self.prune(self.population, currentBssf)
             if bssf.cost < currentBssf.cost:
                 currentBssf = bssf
                 no_improv_count = 0
             else:
                 no_improv_count += 1
             # perform crossover and add them to the population
-            children = self.crossOver(self.population)
-            self.population = np.append(self.population, children)
+            children = self.crossOver(new_pop)
+            self.population = np.append(new_pop, children)
             # perform mutation and add them to the population
-            for genome in self.population:
-                self.population = np.append(self.population, self.mutate(genome))
+            # for genome in self.population:
+            #     self.population = np.append(self.population, self.mutate(genome))
+            self.population = [self.mutate(g) for g in self.population]
         end_time = time.time()
         # since we only have to report on time and cost, the other results are unnecessary
         results['cost'] = currentBssf.cost
         results['count'] = 1
         results['time'] = end_time - start_time
-        results['soln'] = currentBssf
+        results['soln'] = TSPSolution(currentBssf.get_list())
         results['max'] = None
         results['total'] = None
         results['pruned'] = None
@@ -296,7 +297,7 @@ class TSPSolver:
 	"""
 
     def prune(self, genomes, bssf):
-        percent_to_keep = 0.7
+        percent_to_keep = 0.67
         keep_size = math.floor(percent_to_keep * len(genomes))
 
         # Check if there is a new bssf
