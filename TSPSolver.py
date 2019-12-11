@@ -253,7 +253,7 @@ class TSPSolver:
 
         # loop through grabbing two genomes at a time
         for genome1 in genome_it:
-            genome2 = next(genome_it)
+            genome2 = next(genome_it, None)
             if genome2 is None:
                 break
 
@@ -306,11 +306,11 @@ class TSPSolver:
             bssf = minimum
 
         # Prune the genomes
-        total_cost = sum(g.get_cost() for g in genomes)
+        total_cost = sum(g.get_cost() if g.get_cost() != np.inf else 1 for g in genomes)
 
         # each items probability of survival is its cost / sum of all costs
         # subtracted from 1 so the lower costs have higher probabilities of being kepts
-        pdf = [(g.get_cost() / total_cost) if g.get_cost() != np.inf else 1 for g in genomes]
+        pdf = [(g.get_cost() / total_cost) if g.get_cost() != np.inf else 1 / total_cost for g in genomes]
         subset = np.random.choice(genomes, keep_size, replace=False, p=pdf)
 
         return subset.tolist(), bssf
