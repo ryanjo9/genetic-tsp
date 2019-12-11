@@ -19,7 +19,7 @@ import random
 class TSPSolver:
 	def __init__(self, gui_view):
 		self._scenario = None
-		self.populationSize = 100
+		self.populationSize = 200
 		self.population = []
 
 	def setupWithScenario(self, scenario):
@@ -77,6 +77,7 @@ class TSPSolver:
 		solution found, and three null values for fields not used for this 
 		algorithm</returns> 
 	'''
+
 	# O(n^2) Time and Space because we call the create matrix and create route functions
 	def greedy(self, time_allowance=60.0):
 		results = {}
@@ -134,6 +135,7 @@ class TSPSolver:
 		not include the initial BSSF), the best solution found, and three more ints: 
 		max queue size, total number of states created, and number of pruned states.</returns> 
 	'''
+
 	# O() Time and O() Space complexity
 	def branchAndBound(self, time_allowance=60.0):
 		try:
@@ -150,7 +152,7 @@ class TSPSolver:
 			currentState = State()
 			currentState.initializeStartState(cities)  # O(n^2) because we initialize the matrix
 			heapq.heappush(queue, (currentState.lowerBound, currentState))  # push an item onto the priority queue
-			stateCount += 1											# sort queue based on lowerBound O(n*log(n))
+			stateCount += 1  # sort queue based on lowerBound O(n*log(n))
 			while queue:  # O((n-1)!) in worst case. Worst case being every branch needs to be investigated
 				if (time.time() - start_time) > time_allowance:  # if we are over time limit, stop
 					prunedCount += len(queue)
@@ -166,7 +168,8 @@ class TSPSolver:
 						prunedCount += len(queue)
 						queue.clear()
 						break
-					if currentState.costMatrix[currentState.cityID, nextCity] != math.inf:  # only enter if valid path exists
+					if currentState.costMatrix[
+						currentState.cityID, nextCity] != math.inf:  # only enter if valid path exists
 						nextState = State()
 						nextState.initializeNextState(currentState, nextCity, cities[nextCity])  # O(n^2)
 						stateCount += 1
@@ -206,19 +209,38 @@ class TSPSolver:
 	'''
 
 	def fancy(self, time_allowance=60.0):
-    start_time = time.time()
+		start_time = time.time()
+		results = {}
 		no_improv_count = 0
-		TERMINATION_LIMIT
+		TERMINATION_LIMIT = 250
+		currentBssf = self.greedy(time_allowance)['soln']
 		while time.time() - start_time < time_allowance and no_improv_count < TERMINATION_LIMIT:
-			# do something
-			
-			# ...
-			self.crossOver()
-			# ...
-
-			# increment no_improv_count if current generation did not improve
-			# reset no_improv_count if current generation did improve
-
+			# fill population
+			self.fillPopulationWithRandom()
+			# prune population
+			new_pop, bssf = self.prune(self.population, currentBssf)
+			if bssf.cost < currentBssf.cost:
+				currentBssf = TSPSolution(bssf)
+				no_improv_count = 0
+			else:
+				no_improv_count += 1
+			# perform crossover and add them to the population
+			children = self.crossOver(new_pop)
+			self.population = np.append(new_pop, children)
+			# perform mutation and add them to the population
+			# for genome in self.population:
+			#     self.population = np.append(self.population, self.mutate(genome))
+			self.population = [self.mutate(g) for g in self.population]
+		end_time = time.time()
+		# since we only have to report on time and cost, the other results are unnecessary
+		results['cost'] = currentBssf.cost
+		results['count'] = 1
+		results['time'] = end_time - start_time
+		results['soln'] = bssf
+		results['max'] = None
+		results['total'] = None
+		results['pruned'] = None
+		return results
 
 	# Function to cross over a list of genomes
 	# Time O(n^3)
@@ -232,23 +254,23 @@ class TSPSolver:
 
 		# loop through grabbing two genomes at a time
 		for genome1 in genome_it:
-			genome2 = next(genome_it)
+			genome2 = next(genome_it, None)
 			if genome2 is None:
 				break
 
-			genome1 = genome1.genome_list
-			genome2 = genome2.genome_list
-
 			# grab a random index to be the cross over line
-			idx = random.randrange(0, len(genome1))
+			idx = random.randrange(0, len(genome1.genome_list))
 			# for each element to the left cross over
 			for i in range(idx):
-				swap_idx = genome1.index(genome2[i])
-				hold_val = genome1[i]
-				genome1[i] = genome1[swap_idx]
-				genome1[swap_idx] = hold_val
+				swap_idx = genome1.genome_list.index(genome2.genome_list[i])
+				hold_val = genome1.genome_list[i]
+				genome1.genome_list[i] = genome1.genome_list[swap_idx]
+				genome1.genome_list[swap_idx] = hold_val
+			children_genomes.append(genome1)
+		return children_genomes
 
 	def fillPopulationWithRandom(self):
+		bssf = []
 		cities = self._scenario.getCities()
 		ncities = len(cities)
 		foundTour = False
@@ -260,41 +282,55 @@ class TSPSolver:
 			# Now build the route using the random permutation
 			for i in range(ncities):
 				route.append(cities[perm[i]])
-			bssf = TSPSolution(route)
+			# bssf = TSPSolution(route) # uncomment if line 289 is uncommented. Saving constructing new objects
 			genome = Genome(route)
 			genome.get_cost()
 			count += 1
-			if bssf.cost < np.inf:
-				# Found a valid route
-				self.population.append(genome)  # or push bssf if we want population to be TSPSolution objects
+			# This really slows things down above 50 cities and it doesn't hurt it too much at smaller sizes
+			# if bssf.cost < np.inf:
+			#     # Found a valid route
+			self.population.append(genome)  # or push bssf if we want population to be TSPSolution objects
 
 	"""<summary>
 		Takes in a population of genomes and uses weighted probabilities to determine a subset.
 		Returns a list of genomes and bssf
-	   </summary>
+		</summary>
 	"""
+
 	def prune(self, genomes, bssf):
-		percent_to_keep = 0.7
-		keep_size = percent_to_keep * len(genomes)
+		percent_to_keep = 0.67
+		keep_size = math.floor(percent_to_keep * len(genomes))
 
 		# Check if there is a new bssf
-		min = min(genomes, key=lambda g: g.get_cost())
+		minimum = min(genomes, key=lambda g: g.get_cost())
 
-		if min.get_cost() < bssf.get_cost():
-			bssf = min
+		if minimum.get_cost() < bssf.cost:
+			bssf = minimum
 
 		# Prune the genomes
-		total_cost = sum(g.get_cost() for g in genomes)
+		total_cost = sum(g.get_cost() if g.get_cost() != np.inf else 1 for g in genomes)
 
 		# each items probability of survival is its cost / sum of all costs
 		# subtracted from 1 so the lower costs have higher probabilities of being kepts
-		pdf = [1-(g.get_cost() / total_cost) for g in genomes]
+		pdf = [(g.get_cost() / total_cost) if g.get_cost() != np.inf else 1 / total_cost for g in genomes]
 		subset = np.random.choice(genomes, keep_size, replace=False, p=pdf)
 
-		return subset, bssf
+		return subset.tolist(), bssf
 
-			children_genomes.append(genome1)
-		return children_genomes
+	def mutate(self, genome):
+		mutation_rate = 0.1
+		mutate_chance = random.uniform(0.0, 1.0)
+
+		genome_list = genome.get_list()
+		if mutate_chance < mutation_rate:
+			val1, val2 = random.randrange(0, len(genome_list)), random.randrange(0, len(genome_list))
+			genome_list[val1], genome_list[val2] = genome_list[val2], genome_list[val1]
+
+		return Genome(genome_list)
+
+	def fitness(self, genome):
+		return genome.get_cost()
+
 
 """
 This class is the object that represents a node in the tree. It has a matrix that holds values of cost, and it
@@ -369,20 +405,6 @@ class State:
 	def __lt__(self, other):
 		return self.path[-1] < other.path[-1]
 
-	def mutate(self, genome):
-		mutation_rate = 0.1
-		mutate_chance = random.uniform(0.0, 1.0)
-
-		genome_list = genome.getList()
-		if mutate_chance < mutation_rate:
-			val1, val2 = random.randrange(0, len(genome_list)), random.randrange(0, len(genome_list))
-			genome_list[val1], genome_list[val2] = genome_list[val2], genome_list[val1]
-
-		return Genome(genome_list)
-  
-	def fitness(self, genome):
-		return genome.get_cost()
-  
 
 class Genome:
 	def __init__(self, genome_list):
