@@ -19,7 +19,7 @@ import random
 class TSPSolver:
     def __init__(self, gui_view):
         self._scenario = None
-        self.populationSize = 100
+        self.populationSize = 200
         self.population = []
 
     def setupWithScenario(self, scenario):
@@ -212,7 +212,7 @@ class TSPSolver:
         start_time = time.time()
         results = {}
         no_improv_count = 0
-        TERMINATION_LIMIT = 100
+        TERMINATION_LIMIT = 250
         currentBssf = self.greedy(time_allowance)['soln']
         while time.time() - start_time < time_allowance and no_improv_count < TERMINATION_LIMIT:
             # fill population
@@ -220,7 +220,7 @@ class TSPSolver:
             # prune population
             new_pop, bssf = self.prune(self.population, currentBssf)
             if bssf.cost < currentBssf.cost:
-                currentBssf = bssf
+                currentBssf = TSPSolution(bssf)
                 no_improv_count = 0
             else:
                 no_improv_count += 1
@@ -236,7 +236,7 @@ class TSPSolver:
         results['cost'] = currentBssf.cost
         results['count'] = 1
         results['time'] = end_time - start_time
-        results['soln'] = TSPSolution(currentBssf.get_list())
+        results['soln'] = bssf
         results['max'] = None
         results['total'] = None
         results['pruned'] = None
@@ -282,13 +282,14 @@ class TSPSolver:
             # Now build the route using the random permutation
             for i in range(ncities):
                 route.append(cities[perm[i]])
-            bssf = TSPSolution(route)
+            # bssf = TSPSolution(route) # uncomment if line 289 is commented. Saving constructing new objects
             genome = Genome(route)
             genome.get_cost()
             count += 1
-            if bssf.cost < np.inf:
-                # Found a valid route
-                self.population.append(genome)  # or push bssf if we want population to be TSPSolution objects
+            # This really slows things down above 50 cities and it doesn't hurt it too much at smaller sizes
+            # if bssf.cost < np.inf:
+            #     # Found a valid route
+            self.population.append(genome)  # or push bssf if we want population to be TSPSolution objects
 
     """<summary>
 		Takes in a population of genomes and uses weighted probabilities to determine a subset.
