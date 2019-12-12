@@ -208,6 +208,8 @@ class TSPSolver:
 		algorithm</returns> 
 	'''
 
+	# Time Complexity = O(n^2) + O(n^2) + O(n) + O(n^3) + O(1) = O(n^3)
+	# Space Complexity = O(n^2) + O(n) + O(n) + O(n) + O(n) = O(n^2)
 	def fancy(self, time_allowance=60.0):
 		start_time = time.time()
 		results = {}
@@ -244,6 +246,7 @@ class TSPSolver:
 
 	# Function to cross over a list of genomes
 	# Time O(n^3)
+	# Space O(n)
 	def crossOver(self, genomes):
 		genome_list = genomes.copy()
 		children_genomes = []
@@ -269,6 +272,8 @@ class TSPSolver:
 			children_genomes.append(genome1)
 		return children_genomes
 
+	# Time Complexity = O(n^2)
+	# Space Complexity = O(n) Size of population
 	def fillPopulationWithRandom(self):
 		bssf = []
 		cities = self._scenario.getCities()
@@ -297,6 +302,8 @@ class TSPSolver:
 		</summary>
 	"""
 
+	# Time Complexity = O(n) loop to get total cost
+	# Space Complexity = O(n) size of subset
 	def prune(self, genomes, bssf):
 		percent_to_keep = 0.67
 		keep_size = math.floor(percent_to_keep * len(genomes))
@@ -317,6 +324,8 @@ class TSPSolver:
 
 		return subset.tolist(), bssf
 
+	# Time Complexity = O(1)
+	# Space Complexity = O(n) Creates a new Genome
 	def mutate(self, genome):
 		mutation_rate = 0.1
 		mutate_chance = random.uniform(0.0, 1.0)
@@ -328,6 +337,8 @@ class TSPSolver:
 
 		return Genome(genome_list)
 
+	# Time Complexity = O(1)
+	# Space Complexity = O(1)
 	def fitness(self, genome):
 		return genome.get_cost()
 
@@ -412,9 +423,13 @@ class Genome:
 		self.genome_list = []
 		self.genome_list = genome_list
 
+	# Time Complexity = O(1)
+	# Space Complexity = O(1)
 	def get_list(self):
 		return self.genome_list
 
+	# Time Complexity = O(1)
+	# Space Complexity = O(1)
 	def get_cost(self):
 		if self.cost is None:
 			self.cost = TSPSolution(self.genome_list).cost
